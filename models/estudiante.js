@@ -1,25 +1,46 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
-  class estudiante extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
+  class Estudiante extends Model {
     static associate(models) {
-      // define association here
+      // Relación muchos a muchos con Curso mediante la tabla intermedia EstudianteCursos
+      this.belongsToMany(models.Curso, {
+        through: models.EstudianteCursos, // Modelo intermedio
+        foreignKey: 'estudianteId', // Llave foránea para Estudiante
+      });
     }
   }
-  estudiante.init({
-    matricula: DataTypes.STRING,
-    semestre: DataTypes.STRING,
-    creditos: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'estudiante',
-  });
-  return estudiante;
+
+  Estudiante.init(
+    {
+      matricula: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      nombre: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      semestre: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      creditos: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      cursosInscritos: {
+        type: DataTypes.JSON, // Para almacenar una lista de cursos
+        defaultValue: [],
+      },
+    },
+    {
+      sequelize,
+      modelName: 'Estudiante',
+    }
+  );
+
+  return Estudiante;
 };
