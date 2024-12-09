@@ -7,7 +7,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
-          model: 'estudiantes',
+          model: 'estudiante',
           key: 'matricula',
         },
         onDelete: 'CASCADE',
@@ -41,7 +41,7 @@ module.exports = {
     await queryInterface.addConstraint('estudiantecursos', {
       fields: ['matricula', 'claveCurso'],
       type: 'primary key',
-      name: 'estudiantecursos_pk',
+      name: 'estudiantecursos',
     });
   },
 

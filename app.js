@@ -22,10 +22,10 @@ app.use(routes);
 
 
 
-
+/*
 models.sequelize.sync({ alter: true }).then(() => {
   console.log("Esquema actualizado.");
-});
+});*/
 
 // Iniciar el servidor
 const port = 5000;

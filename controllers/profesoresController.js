@@ -1,4 +1,4 @@
-const { Profesor } = require('../models');
+const { Profesor, Curso, Estudiante } = require('../models');
 
 // Obtener todos los profesores
 const getAllProfesores = async (req, res) => {
@@ -6,7 +6,7 @@ const getAllProfesores = async (req, res) => {
     const profesores = await Profesor.findAll();
     res.status(200).json({
       success: true,
-      message: "Estudiantes obtenidos exitosamente.",
+      message: "Profesores obtenidos exitosamente.",
       data: profesores
     });
   } catch (error) {
@@ -14,19 +14,27 @@ const getAllProfesores = async (req, res) => {
   }
 };
 
-// Obtener un profesor por ID
+// Obtener un profesor por numEmpleado
 const getProfesor = async (req, res) => {
+  const { numEmpleado } = req.params;
+
   try {
-    const profesor = await Profesor.findByPk(req.params.id); // `findByPk` busca por clave primaria
-    if (profesor) {
+      // Buscar el profesor por numEmpleado
+      const profesor = await Profesor.findOne({ where: { numEmpleado } });
+
+      // Validar si el profesor existe
+      if (!profesor) {
+          return res.status(404).json({ error: `Profesor con numEmpleado ${numEmpleado} no encontrado` });
+      }
+
+      // Responder con los datos del profesor
       res.status(200).json(profesor);
-    } else {
-      res.status(404).json({ error: `Profesor con id ${req.params.id} no encontrado` });
-    }
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener el profesor' });
+      console.error('Error al obtener el profesor:', error);
+      res.status(500).json({ error: 'Error al obtener el profesor' });
   }
 };
+
 
 // Crear un nuevo profesor
 const createProfesor = async (req, res) => {
@@ -38,36 +46,93 @@ const createProfesor = async (req, res) => {
   }
 };
 
-// Actualizar un profesor
+// Actualizar un profesor por numEmpleado
 const updateProfesor = async (req, res) => {
+  const { numEmpleado } = req.params;
+
   try {
-    const profesor = await Profesor.findByPk(req.params.id);
-    if (profesor) {
-      const updatedProfesor = await profesor.update(req.body); // Actualiza el registro encontrado
+      // Buscar el profesor por numEmpleado
+      const profesor = await Profesor.findOne({ where: { numEmpleado } });
+
+      // Validar si el profesor existe
+      if (!profesor) {
+          return res.status(404).json({ error: `Profesor con numEmpleado ${numEmpleado} no encontrado` });
+      }
+
+      // Actualizar el registro con los datos proporcionados
+      const updatedProfesor = await profesor.update(req.body);
+
+      // Responder con los datos actualizados
       res.status(200).json(updatedProfesor);
-    } else {
-      res.status(404).json({ error: `Profesor con id ${req.params.id} no encontrado` });
-    }
   } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar el profesor' });
+      console.error('Error al actualizar el profesor:', error);
+      res.status(500).json({ error: 'Error al actualizar el profesor' });
   }
 };
 
-// Eliminar un profesor
+
+// Eliminar un profesor por numEmpleado
 const deleteProfesor = async (req, res) => {
+  const { numEmpleado } = req.params;
+
   try {
+    // Eliminar profesor usando numEmpleado
     const rowsDeleted = await Profesor.destroy({
-      where: { id: req.params.id }, // Borra por condición
+      where: { numEmpleado } // Borra por condición usando numEmpleado
     });
+
+    // Verificar si se eliminó al menos un registro
     if (rowsDeleted) {
-      res.status(200).json({ msg: `Profesor con id ${req.params.id} eliminado exitosamente` });
+      res.status(200).json({ msg: `Profesor con numEmpleado ${numEmpleado} eliminado exitosamente` });
     } else {
-      res.status(404).json({ error: `Profesor con id ${req.params.id} no encontrado` });
+      res.status(404).json({ error: `Profesor con numEmpleado ${numEmpleado} no encontrado` });
     }
   } catch (error) {
+    console.error('Error al eliminar el profesor:', error);
     res.status(500).json({ error: 'Error al eliminar el profesor' });
   }
 };
+
+
+// Inscribir un profesor en un curso por numEmpleado y claveCurso
+const enrollProfesor = async (req, res) => {
+  const { numEmpleado } = req.params; // Obtener numEmpleado de los parámetros de la ruta
+  const { claveCurso } = req.body; // Obtener claveCurso del cuerpo de la solicitud
+
+  try {
+      // Buscar al profesor por numEmpleado
+      const profesor = await Profesor.findOne({ where: { numEmpleado } });
+
+      // Validar si el profesor existe
+      if (!profesor) {
+          return res.status(404).json({ error: `Profesor con numEmpleado ${numEmpleado} no encontrado` });
+      }
+
+      // Buscar el curso por claveCurso
+      const curso = await Curso.findOne({ where: { claveCurso } });
+
+      // Validar si el curso existe
+      if (!curso) {
+          return res.status(404).json({ error: `Curso con claveCurso ${claveCurso} no encontrado` });
+      }
+
+      // Relacionar al profesor con el curso
+      await profesor.addCurso(curso);
+
+      // Responder con éxito
+      res.status(200).json({
+          message: 'Profesor inscrito en el curso exitosamente',
+          profesorId: numEmpleado,
+          claveCurso
+      });
+  } catch (error) {
+      console.error('Error al inscribir al profesor en el curso:', error);
+      res.status(500).json({ error: 'Error al inscribir al profesor en el curso' });
+  }
+};
+
+
+
 
 module.exports = {
   getAllProfesores,
@@ -75,4 +140,5 @@ module.exports = {
   createProfesor,
   updateProfesor,
   deleteProfesor,
+  enrollProfesor,
 };

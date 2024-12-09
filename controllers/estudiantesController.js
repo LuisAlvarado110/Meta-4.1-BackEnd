@@ -1,9 +1,7 @@
-//const { Estudiante, Curso } = require('../models/estudiante');
-//const { Estudiante } = require('../models/estudiante');
-const { Estudiante, Curso} = require('../models');
+const { Estudiante, Curso, Profesor} = require('../models');
 console.log(Estudiante);
 
-// Obtener todos los estudiantes
+// Obtener todos los estudiantes - Listo
 const getAllEstudiantes = async (req, res) => {
     try {
         // Obtener todos los estudiantes
@@ -24,7 +22,7 @@ const getAllEstudiantes = async (req, res) => {
     }
 };
 
-// Obtener un estudiante por matrícula
+// Obtener un estudiante por matrícula - Listo
 const getEstudiante = async (req, res) => {
     try {
         const estudiante = await Estudiante.findOne({ where: { matricula: req.params.matricula } });
@@ -38,7 +36,7 @@ const getEstudiante = async (req, res) => {
     }
 };
 
-// Crear un nuevo estudiante
+// Crear un nuevo estudiante - Listo
 const createEstudiante = async (req, res) => {
     try {
         const newEstudiante = await Estudiante.create(req.body);
@@ -48,35 +46,55 @@ const createEstudiante = async (req, res) => {
     }
 };
 
-// Actualizar un estudiante
+// Actualizar un estudiante - Listo
 const updateEstudiante = async (req, res) => {
+    const { matricula } = req.params;
+
     try {
-        const estudiante = await Estudiante.findByPk(req.params.id);
+        // Buscar estudiante por matrícula
+        const estudiante = await Estudiante.findOne({ where: { matricula } });
         if (!estudiante) {
-            return res.status(404).json({ error: `Estudiante con id ${req.params.id} no encontrado` });
+            return res.status(404).json({ error: `Estudiante con matrícula ${matricula} no encontrado` });
         }
+
+        // Actualizar los datos del estudiante con el cuerpo de la solicitud
         const updatedEstudiante = await estudiante.update(req.body);
-        res.status(200).json(updatedEstudiante);
+
+        res.status(200).json({ 
+            msg: 'Estudiante actualizado exitosamente', 
+            estudiante: updatedEstudiante 
+        });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error('Error al actualizar el estudiante:', error);
+        res.status(400).json({ error: 'Error al actualizar el estudiante.' });
     }
 };
 
-// Eliminar un estudiante
+
+// Eliminar un estudiante por matrícula - Listo
 const deleteEstudiante = async (req, res) => {
+    const { matricula } = req.params;
+
     try {
-        const estudiante = await Estudiante.findByPk(req.params.id);
+        // Buscar al estudiante por matrícula
+        const estudiante = await Estudiante.findOne({ where: { matricula } });
+
+        // Validar si el estudiante existe
         if (!estudiante) {
-            return res.status(404).json({ error: `Estudiante con id ${req.params.id} no encontrado` });
+            return res.status(404).json({ error: `Estudiante con matrícula ${matricula} no encontrado` });
         }
+
+        // Eliminar al estudiante
         await estudiante.destroy();
-        res.status(200).json({ msg: `Estudiante con id ${req.params.id} borrado exitosamente` });
+        res.status(200).json({ msg: `Estudiante con matrícula ${matricula} borrado exitosamente` });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error al eliminar el estudiante:', error);
+        res.status(500).json({ error: 'Error al eliminar el estudiante.' });
     }
 };
 
-// Inscribir a un estudiante en un curso
+
+// Inscribir a un estudiante en un curso - Listo
 const enrollEstudiante = async (req, res) => {
     try {
         // Buscar estudiante por matrícula
@@ -98,25 +116,42 @@ const enrollEstudiante = async (req, res) => {
 };
 
 
-// Desinscribir a un estudiante de un curso
+// Desinscribir a un estudiante de un curso  - Listo
 const disenrollEstudiante = async (req, res) => {
+    const { matricula } = req.params;
+    const { claveCurso } = req.body;
+
     try {
-        const estudiante = await Estudiante.findByPk(req.params.id);
-        const curso = await Curso.findByPk(req.body.cursoId);
+        // Buscar estudiante por matrícula
+        const estudiante = await Estudiante.findOne({ where: { matricula } });
+        if (!estudiante) {
+            return res.status(404).json({ error: 'Estudiante no encontrado' });
+        }
 
-        if (!estudiante) return res.status(404).json({ error: 'Estudiante no encontrado' });
-        if (!curso) return res.status(404).json({ error: 'Curso no encontrado' });
+        // Buscar curso por claveCurso
+        const curso = await Curso.findOne({ where: { claveCurso } });
+        if (!curso) {
+            return res.status(404).json({ error: 'Curso no encontrado' });
+        }
 
-        estudiante.cursosInscritos = estudiante.cursosInscritos.filter(id => id !== curso.id);
-        await estudiante.save();
+        // Verificar si el estudiante está inscrito en el curso
+        const existeRelacion = await estudiante.hasCurso(curso);
+        if (!existeRelacion) {
+            return res.status(400).json({ error: 'El estudiante no está inscrito en este curso.' });
+        }
 
-        res.status(200).json({ msg: 'Estudiante desinscrito exitosamente', cursosInscritos: estudiante.cursosInscritos });
+        // Eliminar la relación entre estudiante y curso
+        await estudiante.removeCurso(curso);
+
+        res.status(200).json({ msg: 'Estudiante desinscrito exitosamente' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error al desinscribir al estudiante:', error);
+        res.status(500).json({ error: 'Error al desinscribir al estudiante.' });
     }
 };
 
-// Obtener cursos inscritos de un estudiante
+
+// Obtener cursos inscritos de un estudiante - Listo
 const cursosInscritosEstudiante = async (req, res) => {
     const { matricula } = req.params;
     try {
@@ -124,8 +159,7 @@ const cursosInscritosEstudiante = async (req, res) => {
         const estudiante = await Estudiante.findOne({
             where: { matricula },
             include: [{
-                model: Curso,
-                through: { attributes: ['calificacion'] } // Atributos de la tabla intermedia
+                model: Curso
             }]
         });
 
@@ -139,11 +173,10 @@ const cursosInscritosEstudiante = async (req, res) => {
             return res.status(200).json({ matricula, cursosInscritos: [] });
         }
 
-        // Mapear cursos inscritos con calificación
+        // Mapear cursos inscritos
         const cursosInscritos = estudiante.Cursos.map(curso => ({
             nombre: curso.nombre, // Nombre del curso
-            claveCurso: curso.claveCurso, // Clave del curso
-            calificacion: curso.EstudianteCurso.calificacion // Calificación desde la tabla intermedia
+            claveCurso: curso.claveCurso // Clave del curso
         }));
 
         // Responder con la lista de cursos inscritos
@@ -154,12 +187,48 @@ const cursosInscritosEstudiante = async (req, res) => {
     }
 };
 
+// Obtener los nombres de los maestros de los cursos inscritos de un estudiante
+const getProfesoresEstudiante = async (req, res) => {
+    const { matricula } = req.params;
 
+    // Validar si se proporcionó la matrícula
+    if (!matricula) {
+        return res.status(400).json({ error: 'La matrícula es requerida.' });
+    }
 
+    try {
+        // Buscar estudiante por matrícula y cargar los cursos y profesores relacionados
+        const estudiante = await Estudiante.findOne({
+            where: { matricula },
+            include: {
+                model: Curso,
+                include: {
+                    model: Profesor, // Incluir el modelo de Profesores
+                    attributes: ['nombre'], // Seleccionar únicamente el nombre del profesor
+                    through: { attributes: [] } // Excluir datos de la tabla intermedia
+                }
+            }
+        });
 
+        // Validar si el estudiante fue encontrado
+        if (!estudiante) {
+            return res.status(404).json({ error: 'Estudiante no encontrado.' });
+        }
 
+        // Extraer los nombres únicos de los profesores
+        const nombresProfesores = estudiante.Cursos.flatMap(curso => 
+            curso.Profesors.map(profesor => profesor.nombre)
+        );
 
+        const nombresUnicos = [...new Set(nombresProfesores)]; // Eliminar duplicados
 
+        // Responder con la lista de nombres de los profesores
+        res.status(200).json({ matricula, profesores: nombresUnicos });
+    } catch (error) {
+        console.error('Error obteniendo los nombres de los maestros:', error);
+        res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+};
 
 
 module.exports = {
@@ -171,4 +240,5 @@ module.exports = {
     enrollEstudiante,
     disenrollEstudiante,
     cursosInscritosEstudiante,
+    getProfesoresEstudiante
 };

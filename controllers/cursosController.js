@@ -40,33 +40,55 @@ const createCurso = async (req, res) => {
     }
 };
 
-// Actualizar un curso
+// Actualizar un curso mediante claveCurso
 const updateCurso = async (req, res) => {
+    const { claveCurso } = req.params;
+
     try {
-        const curso = await Curso.findByPk(req.params.id);
+        // Buscar el curso por claveCurso
+        const curso = await Curso.findOne({ where: { claveCurso } });
+        
+        // Validar si el curso existe
         if (!curso) {
-            return res.status(404).json({ error: `Curso con id ${req.params.id} no encontrado` });
+            return res.status(404).json({ error: `Curso con claveCurso ${claveCurso} no encontrado` });
         }
+
+        // Actualizar el curso con los datos proporcionados
         const updatedCurso = await curso.update(req.body);
+
+        // Responder con el curso actualizado
         res.status(200).json(updatedCurso);
     } catch (error) {
+        console.error('Error actualizando el curso:', error);
         res.status(400).json({ error: error.message });
     }
 };
 
-// Eliminar un curso
+
+// Eliminar un curso mediante claveCurso
 const deleteCurso = async (req, res) => {
+    const { claveCurso } = req.params;
+
     try {
-        const curso = await Curso.findByPk(req.params.id);
+        // Buscar el curso por claveCurso
+        const curso = await Curso.findOne({ where: { claveCurso } });
+
+        // Validar si el curso existe
         if (!curso) {
-            return res.status(404).json({ error: `Curso con id ${req.params.id} no encontrado` });
+            return res.status(404).json({ error: `Curso con claveCurso ${claveCurso} no encontrado` });
         }
+
+        // Eliminar el curso
         await curso.destroy();
-        res.status(200).json({ msg: `Curso con id ${req.params.id} eliminado exitosamente` });
+
+        // Responder con mensaje de éxito
+        res.status(200).json({ msg: `Curso con claveCurso ${claveCurso} eliminado exitosamente` });
     } catch (error) {
+        console.error('Error eliminando el curso:', error);
         res.status(500).json({ error: error.message });
     }
 };
+
 
 // Exportar las funciones
 module.exports = {

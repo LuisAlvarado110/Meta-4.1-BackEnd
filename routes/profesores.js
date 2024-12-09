@@ -7,9 +7,9 @@ router.get('/getProfesor/:numEmpleado', profesoresController.getProfesor); // Ob
 router.post('/createProfesor', profesoresController.createProfesor); // Crear un nuevo profesor
 router.put('/updateProfesor/:numEmpleado', profesoresController.updateProfesor); // Actualizar un profesor existente por noEmpleado
 router.delete('/deleteProfesor/:numEmpleado', profesoresController.deleteProfesor); // Eliminar un profesor por noEmpleado
-//router.patch('/profesores/:numEmpleado/enroll', profesoresController.enrollProfesores); // Inscribir a un profesor en un curso
-//router.patch('/profesores/:numEmpleado/disenroll', profesoresController.disenrollProfesores); // Desinscribir a un profesor de un curso
-//router.get('/profesores/:numEmpleado/cursos', profesoresController.cursosInscritosProfesores); // Obtener cursos asociados a un profesor
-//router.get('/profesores/:numEmpleado/estudiantes', profesoresController.getEstudiantesProfesor); // Obtener estudiantes asociados a un profesor
+router.patch('/darAltaProfesor/:numEmpleado', profesoresController.enrollProfesor); // Dar de alta a un profesor en un curso
+//router.patch('/darBajaProfesor/:numEmpleado', profesoresController.disenrollProfesor); // Dar de baja a un profesor de un curso
+//router.get('/getCursosProfesor/:numEmpleado', profesoresController.cursosInscritosProfesor); // Obtener cursos asociados a un profesor
+//router.get('/getEstudiantesProfesor/:numEmpleado', profesoresController.getEstudiantesProfesor); // Obtener estudiantes asociados a un profesor
 
 module.exports = router;
