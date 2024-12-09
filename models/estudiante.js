@@ -5,10 +5,11 @@ module.exports = (sequelize, DataTypes) => {
   class Estudiante extends Model {
     static associate(models) {
       // Relación muchos a muchos con Curso mediante la tabla intermedia EstudianteCursos
-      this.belongsToMany(models.Curso, {
+      /*this.belongsToMany(models.Curso, {
         through: models.EstudianteCursos, // Modelo intermedio
-        foreignKey: 'estudianteId', // Llave foránea para Estudiante
-      });
+        foreignKey: 'matricula', // Llave foránea para Estudiante
+      });*/
+      this.belongsToMany(models.Curso, { through: 'EstudianteCurso' });
     }
   }
 
@@ -30,11 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       creditos: {
         type: DataTypes.INTEGER,
         allowNull: false,
-      },
-      cursosInscritos: {
-        type: DataTypes.JSON, // Para almacenar una lista de cursos
-        defaultValue: [],
-      },
+      }
     },
     {
       sequelize,

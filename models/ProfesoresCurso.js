@@ -5,16 +5,16 @@ module.exports = (sequelize, DataTypes) => {
   class ProfesoresCurso extends Model {
     static associate(models) {
       // Relación con Profesor
-      this.belongsTo(models.Profesor, { foreignKey: 'profesorId' });
+      this.belongsTo(models.Profesor, { foreignKey: 'numEmpleado' });
       // Relación con Curso
-      this.belongsTo(models.Curso, { foreignKey: 'cursoId' });
+      this.belongsTo(models.Curso, { foreignKey: 'claveCurso' });
     }
   }
 
   ProfesoresCurso.init(
     {
-      profesorId: DataTypes.INTEGER,
-      cursoId: DataTypes.INTEGER,
+      numEmpleado: DataTypes.INTEGER,
+      claveCurso: DataTypes.INTEGER,
     },
     {
       sequelize,

@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       calificacion: {
         type: DataTypes.INTEGER,
         allowNull: true,
-      },
+      }
     },
     {
       sequelize,

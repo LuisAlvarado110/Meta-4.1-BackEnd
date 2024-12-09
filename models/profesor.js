@@ -7,8 +7,8 @@ module.exports = (sequelize, DataTypes) => {
       // Relación muchos a muchos con Curso mediante la tabla intermedia ProfesoresCurso
       this.belongsToMany(models.Curso, {
         through: models.ProfesoresCurso, // Nombre exacto del modelo intermedio
-        foreignKey: 'profesorId', // Clave en ProfesoresCurso para Profesor
-        otherKey: 'cursoId', // Clave en ProfesoresCurso para Curso
+        foreignKey: 'numEmpleado', // Clave en ProfesoresCurso para Profesor
+        otherKey: 'claveCurso', // Clave en ProfesoresCurso para Curso
         as: 'cursos', // Alias para la relación
       });
       

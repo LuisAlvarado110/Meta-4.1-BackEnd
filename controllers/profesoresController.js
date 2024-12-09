@@ -1,10 +1,14 @@
-const { Profesor } = require('../models/profesor');
+const { Profesor } = require('../models');
 
 // Obtener todos los profesores
 const getAllProfesores = async (req, res) => {
   try {
     const profesores = await Profesor.findAll();
-    res.status(200).json(profesores);
+    res.status(200).json({
+      success: true,
+      message: "Estudiantes obtenidos exitosamente.",
+      data: profesores
+    });
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener los profesores' });
   }

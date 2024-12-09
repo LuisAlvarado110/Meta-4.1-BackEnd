@@ -1,13 +1,20 @@
-const { Curso } = require('../models/cursos'); 
+const { Curso } = require('../models'); 
 
 // Obtener todos los cursos
 const getAllCursos = async (req, res) => {
     try {
+        // Obtener todos los cursos
         const cursos = await Curso.findAll();
-        res.status(200).json(cursos);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+    
+        res.status(200).json({ 
+            success: true,
+            message: "Cursos obtenidos exitosamente.",
+            data: cursos
+         });
+      } catch (error) {
+        console.error('Error al obtener los cursos:', error);
+        res.status(500).json({ success: false, error: 'Error al obtener los cursos.' });
+      }
 };
 
 // Obtener un curso por ID
