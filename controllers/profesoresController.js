@@ -131,6 +131,71 @@ const enrollProfesor = async (req, res) => {
   }
 };
 
+// Quitar curso a un profesor
+const disenrollProfesor = async (req, res) => {
+  const { numEmpleado } = req.params; // Identificar al profesor por numEmpleado
+  const { claveCurso } = req.body;   // Identificar el curso por claveCurso
+
+  try {
+      // Buscar al profesor por numEmpleado
+      const profesor = await models.Profesor.findOne({ where: { numEmpleado } });
+      if (!profesor) {
+          return res.status(404).json({ error: 'Profesor no encontrado.' });
+      }
+
+      // Buscar el curso por claveCurso
+      const curso = await models.Curso.findOne({ where: { clave: claveCurso } });
+      if (!curso) {
+          return res.status(404).json({ error: 'Curso no encontrado.' });
+      }
+
+      // Remover la asociación entre el profesor y el curso
+      await profesor.removeCurso(curso);
+
+      res.status(200).json({ message: 'Curso removido del profesor exitosamente.' });
+  } catch (error) {
+      console.error('Error quitando el curso al profesor:', error);
+      res.status(500).json({ error: 'Error quitando el curso al profesor.' });
+  }
+};
+
+// Obtener cursos que imparte un profesor
+const getCursosProfesor = async (req, res) => {
+  const { numEmpleado } = req.params;
+  try {
+      // Buscar profesor por numEmpleado e incluir cursos relacionados con el alias
+      const profesor = await Profesor.findOne({
+          where: { numEmpleado },
+          include: [{
+              model: Curso,
+              as: 'Cursos' // Especificar el alias usado en la relación
+          }]
+      });
+
+      // Validar si se encontró el profesor
+      if (!profesor) {
+          return res.status(404).json({ error: 'Profesor no encontrado.' });
+      }
+
+      // Validar si el profesor tiene cursos asignados
+      if (!profesor.Cursos || profesor.Cursos.length === 0) {
+          return res.status(200).json({ numEmpleado, cursosImpartidos: [] });
+      }
+
+      // Mapear cursos impartidos
+      const cursosImpartidos = profesor.Cursos.map(curso => ({
+          nombre: curso.nombre,    // Nombre del curso
+          claveCurso: curso.clave  // Clave del curso
+      }));
+
+      // Responder con la lista de cursos impartidos
+      res.status(200).json({ numEmpleado: profesor.numEmpleado, cursosImpartidos });
+  } catch (error) {
+      console.error('Error obteniendo cursos impartidos:', error);
+      res.status(500).json({ error: 'Error obteniendo cursos impartidos.' });
+  }
+};
+
 
 
 
@@ -141,4 +206,7 @@ module.exports = {
   updateProfesor,
   deleteProfesor,
   enrollProfesor,
+  disenrollProfesor,
+  getCursosProfesor
+  
 };

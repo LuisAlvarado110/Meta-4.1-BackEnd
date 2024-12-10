@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
         through: models.ProfesoresCurso, // Nombre exacto del modelo intermedio
         foreignKey: 'claveCurso', // Clave en ProfesoresCurso para Curso
         otherKey: 'numEmpleado', // Clave en ProfesoresCurso para Profesor
-        as: 'profesores', // Alias para la relación
+        as: 'Profesores', // Alias para la relación
       });
       
     }

@@ -1,5 +1,4 @@
 const { Estudiante, Curso, Profesor} = require('../models');
-console.log(Estudiante);
 
 // Obtener todos los estudiantes - Listo
 const getAllEstudiantes = async (req, res) => {
@@ -203,7 +202,8 @@ const getProfesoresEstudiante = async (req, res) => {
             include: {
                 model: Curso,
                 include: {
-                    model: Profesor, // Incluir el modelo de Profesores
+                    model: Profesor,
+                    as: 'Profesores', // Usar el alias definido en el modelo
                     attributes: ['nombre'], // Seleccionar únicamente el nombre del profesor
                     through: { attributes: [] } // Excluir datos de la tabla intermedia
                 }
@@ -215,20 +215,33 @@ const getProfesoresEstudiante = async (req, res) => {
             return res.status(404).json({ error: 'Estudiante no encontrado.' });
         }
 
-        // Extraer los nombres únicos de los profesores
+        // Validar que el estudiante tiene cursos asociados
+        if (!estudiante.Cursos || estudiante.Cursos.length === 0) {
+            return res.status(200).json({ 
+                matricula, 
+                profesores: [] 
+            }); // Si no hay cursos, responder con una lista vacía
+        }
+
+        // Extraer los nombres de los profesores relacionados a los cursos del estudiante
         const nombresProfesores = estudiante.Cursos.flatMap(curso => 
-            curso.Profesors.map(profesor => profesor.nombre)
+            curso.Profesors ? curso.Profesors.map(profesor => profesor.nombre) : []
         );
 
         const nombresUnicos = [...new Set(nombresProfesores)]; // Eliminar duplicados
 
         // Responder con la lista de nombres de los profesores
-        res.status(200).json({ matricula, profesores: nombresUnicos });
+        res.status(200).json({
+            matricula,
+            profesores: nombresUnicos
+        });
     } catch (error) {
-        console.error('Error obteniendo los nombres de los maestros:', error);
+        console.error('Error obteniendo los nombres de los profesores:', error);
         res.status(500).json({ error: 'Error interno del servidor.' });
     }
 };
+
+
 
 
 module.exports = {
