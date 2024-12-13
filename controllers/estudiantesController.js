@@ -6,11 +6,13 @@ const getAllEstudiantes = async (req, res) => {
         // Obtener todos los estudiantes
         const estudiantes = await Estudiante.findAll();
   
-        res.status(200).json({
-            success: true,
-            message: "Estudiantes obtenidos exitosamente.",
-            data: estudiantes,
-        });
+        /*res.status(200).json({
+            //success: true,
+            //message: "Estudiantes obtenidos exitosamente.",
+            //data: estudiantes,
+            estudiantes
+        });*/
+        res.status(200).json(estudiantes);
     } catch (error) {
         console.error("Error al obtener estudiantes:", error);
         res.status(500).json({
@@ -174,7 +176,7 @@ const cursosInscritosEstudiante = async (req, res) => {
 
         // Mapear cursos inscritos
         const cursosInscritos = estudiante.Cursos.map(curso => ({
-            nombre: curso.nombre, // Nombre del curso
+            nombreCurso: curso.nombreCurso, // Nombre del curso
             claveCurso: curso.claveCurso // Clave del curso
         }));
 
@@ -186,7 +188,6 @@ const cursosInscritosEstudiante = async (req, res) => {
     }
 };
 
-// Obtener los nombres de los maestros de los cursos inscritos de un estudiante
 const getProfesoresEstudiante = async (req, res) => {
     const { matricula } = req.params;
 
@@ -199,15 +200,16 @@ const getProfesoresEstudiante = async (req, res) => {
         // Buscar estudiante por matrícula y cargar los cursos y profesores relacionados
         const estudiante = await Estudiante.findOne({
             where: { matricula },
-            include: {
+            include: [{
                 model: Curso,
-                include: {
+                as: 'Cursos', // Asegurarse de usar el alias correcto definido en las asociaciones
+                include: [{
                     model: Profesor,
-                    as: 'Profesores', // Usar el alias definido en el modelo
-                    attributes: ['nombre'], // Seleccionar únicamente el nombre del profesor
+                    as: 'Profesores', // Alias definido en la relación entre Curso y Profesor
+                    attributes: ['numEmpleado', 'nombre'], // Seleccionar los campos requeridos
                     through: { attributes: [] } // Excluir datos de la tabla intermedia
-                }
-            }
+                }]
+            }]
         });
 
         // Validar si el estudiante fue encontrado
@@ -220,26 +222,36 @@ const getProfesoresEstudiante = async (req, res) => {
             return res.status(200).json({ 
                 matricula, 
                 profesores: [] 
-            }); // Si no hay cursos, responder con una lista vacía
+            });
         }
 
-        // Extraer los nombres de los profesores relacionados a los cursos del estudiante
-        const nombresProfesores = estudiante.Cursos.flatMap(curso => 
-            curso.Profesors ? curso.Profesors.map(profesor => profesor.nombre) : []
+        // Extraer los profesores relacionados a los cursos del estudiante
+        const profesores = estudiante.Cursos.flatMap(curso =>
+            curso.Profesores
+                ? curso.Profesores.map(profesor => ({
+                    numEmpleado: profesor.numEmpleado,
+                    nombre: profesor.nombre
+                }))
+                : []
         );
 
-        const nombresUnicos = [...new Set(nombresProfesores)]; // Eliminar duplicados
+        // Eliminar duplicados basados en numEmpleado
+        const profesoresUnicos = profesores.filter(
+            (profesor, index, self) =>
+                index === self.findIndex(p => p.numEmpleado === profesor.numEmpleado)
+        );
 
-        // Responder con la lista de nombres de los profesores
+        // Responder con la lista de profesores
         res.status(200).json({
             matricula,
-            profesores: nombresUnicos
+            profesores: profesoresUnicos
         });
     } catch (error) {
-        console.error('Error obteniendo los nombres de los profesores:', error);
+        console.error('Error obteniendo los datos de los profesores:', error);
         res.status(500).json({ error: 'Error interno del servidor.' });
     }
 };
+
 
 
 

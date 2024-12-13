@@ -9,7 +9,7 @@ router.put('/updateEstudiante/:matricula', estudianteController.updateEstudiante
 router.delete('/deleteEstudiante/:matricula', estudianteController.deleteEstudiante); // Eliminar un estudiante por matrícula
 router.patch('/darAltaEstudiante/:matricula', estudianteController.enrollEstudiante); // Inscribir a un estudiante en un curso
 router.patch('/darBajaEstudiante/:matricula', estudianteController.disenrollEstudiante); // Desinscribir a un estudiante de un curso
-router.get('/getEstudianteCursos/:matricula', estudianteController.cursosInscritosEstudiante); // Obtener cursos inscritos por matrícula
+router.get('/getCursosEstudiante/:matricula', estudianteController.cursosInscritosEstudiante); // Obtener cursos inscritos por matrícula
 router.get('/getProfesoresEstudiante/:matricula', estudianteController.getProfesoresEstudiante); // Obtener profesores asociados a un estudiante por matrícula
 
 

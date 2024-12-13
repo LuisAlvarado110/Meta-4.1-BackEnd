@@ -1,4 +1,5 @@
-const { Curso } = require('../models'); 
+const { Curso, Estudiante, Profesor } = require('../models'); 
+const { getProfesoresEstudiante } = require('./estudiantesController');
 
 // Obtener todos los cursos
 const getAllCursos = async (req, res) => {
@@ -19,10 +20,11 @@ const getAllCursos = async (req, res) => {
 
 // Obtener un curso por ID
 const getCurso = async (req, res) => {
+    const { claveCurso } = req.params;
     try {
-        const curso = await Curso.findByPk(req.params.id);
+        const curso = await Curso.findOne({ where: { claveCurso } });
         if (!curso) {
-            return res.status(404).json({ error: `Curso con id ${req.params.id} no encontrado` });
+            return res.status(404).json({ error: `Curso con claveCurso ${claveCurso} no encontrado` });
         }
         res.status(200).json(curso);
     } catch (error) {
@@ -89,6 +91,101 @@ const deleteCurso = async (req, res) => {
     }
 };
 
+const getEstudiantesCurso = async (req, res) => {
+    const { claveCurso } = req.params; // Identificar el curso por claveCurso
+  
+    try {
+      // Buscar el curso por claveCurso e incluir los estudiantes relacionados
+      const curso = await Curso.findOne({
+        where: { claveCurso },
+        include: [
+          {
+            model: Estudiante,
+            as: 'Estudiantes', // Alias de la relación Estudiante
+            attributes: ['matricula', 'nombre'], // Seleccionar campos relevantes
+            through: { attributes: [] }, // Excluir datos de la tabla intermedia
+          },
+        ],
+        attributes: ['claveCurso', 'nombreCurso'], // Seleccionar campos relevantes del curso
+      });
+  
+      // Validar si se encontró el curso
+      if (!curso) {
+        return res.status(404).json({ error: 'Curso no encontrado.' });
+      }
+  
+      // Extraer los estudiantes relacionados al curso
+      const estudiantes = curso.Estudiantes.map((estudiante) => ({
+        matricula: estudiante.matricula,
+        nombre: estudiante.nombre,
+      }));
+  
+      // Eliminar duplicados basados en la matrícula del estudiante (por seguridad)
+      const estudiantesUnicos = estudiantes.filter(
+        (estudiante, index, self) =>
+          index === self.findIndex((e) => e.matricula === estudiante.matricula)
+      );
+  
+      // Responder con la lista de estudiantes
+      res.status(200).json({
+        claveCurso: curso.claveCurso,
+        nombreCurso: curso.nombreCurso,
+        estudiantes: estudiantesUnicos,
+      });
+    } catch (error) {
+      console.error('Error obteniendo estudiantes del curso:', error);
+      res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+  };
+  
+  const getProfesoresCurso = async (req, res) => {
+    const { claveCurso } = req.params; // Identificar el curso por claveCurso
+  
+    try {
+      // Buscar el curso por claveCurso e incluir los profesores relacionados
+      const curso = await Curso.findOne({
+        where: { claveCurso },
+        include: [
+          {
+            model: Profesor,
+            as: 'Profesores', // Alias de la relación Profesor
+            attributes: ['numEmpleado', 'nombre'], // Seleccionar campos relevantes
+            through: { attributes: [] }, // Excluir datos de la tabla intermedia
+          },
+        ],
+        attributes: ['claveCurso', 'nombreCurso'], // Seleccionar campos relevantes del curso
+      });
+  
+      // Validar si se encontró el curso
+      if (!curso) {
+        return res.status(404).json({ error: 'Curso no encontrado.' });
+      }
+  
+      // Extraer los profesores relacionados al curso
+      const profesores = curso.Profesores.map((profesor) => ({
+        numEmpleado: profesor.numEmpleado,
+        nombre: profesor.nombre,
+      }));
+  
+      // Eliminar duplicados basados en el numEmpleado del profesor (por seguridad)
+      const profesoresUnicos = profesores.filter(
+        (profesor, index, self) =>
+          index === self.findIndex((p) => p.numEmpleado === profesor.numEmpleado)
+      );
+  
+      // Responder con la lista de profesores
+      res.status(200).json({
+        claveCurso: curso.claveCurso,
+        nombreCurso: curso.nombreCurso,
+        profesores: profesoresUnicos,
+      });
+    } catch (error) {
+      console.error('Error obteniendo profesores del curso:', error);
+      res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+  };
+  
+
 
 // Exportar las funciones
 module.exports = {
@@ -97,4 +194,6 @@ module.exports = {
     createCurso,
     updateCurso,
     deleteCurso,
+    getEstudiantesCurso,
+    getProfesoresCurso
 };
